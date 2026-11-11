@@ -39,11 +39,15 @@ Clearpath Heron used in the paper.
 
 ## Quick start
 
+```bash
+git clone https://github.com/eminalpkoyuncu/HF-TO.git
+```
+
 ```matlab
-cd hf-to-usv
+cd HF-TO
 setup                                   % adds the code to the path
 cfgOverride = struct('mapNo',13,'nRuns',20);
-run_hfto_mc                            % our method, Map 2, 20 runs
+run_hfto_mc                             % our method, Map 2, 20 runs
 cfgOverride = struct('mapNo',13,'nRuns',20);
 run_mpcgraph_mc                         % MPC-Graph on the same runs
 summarize_results(13)                   % side-by-side table
