@@ -58,6 +58,81 @@ Fossen model) and saves it in `results/`; later runs reuse it. All settings
 are in `config/default_config.m` and can be overridden by defining a struct
 `cfgOverride` before running an experiment script.
 
+## Usage
+
+Run `setup` once per MATLAB session. Every experiment is a script in
+`experiments/`; it reads its settings from `config/default_config.m` and
+applies the fields of a struct `cfgOverride`, if one exists in the workspace.
+The scripts clear the workspace but keep `cfgOverride`, so change it (or
+`clear cfgOverride`) before running the next script.
+
+### Monte Carlo experiments
+
+| Script | What it runs |
+|---|---|
+| `run_hfto_mc` | our method on one map and model: plans once, then `cfg.nRuns` closed-loop runs |
+| `run_mpcgraph_mc` | MPC-Graph on the same runs (same seeds) |
+| `run_monte_carlo` | all sets of the paper: both methods, both maps, both models, all cases |
+| `summarize_results(mapNo)` | table of both methods from the files in `results/` |
+
+```matlab
+cfgOverride = struct('mapNo',3,'model','identified','nRuns',100);
+run_hfto_mc
+```
+
+`run_monte_carlo` takes a struct `batch` instead, to restrict what it runs:
+
+```matlab
+batch.maps = 13; batch.models = {'fossen'}; batch.cases = {'baseline'};
+batch.est = false; batch.methods = {'hfto'}; batch.nRuns = 50;
+run_monte_carlo
+```
+
+### Settings
+
+The most used fields of `cfgOverride` (all of them, with their defaults, are
+in `config/default_config.m`):
+
+| Field | Default | Meaning |
+|---|---|---|
+| `mapNo` | `13` | `3` = Map 1 of the paper, `13` = Map 2, `14` = Gazebo map |
+| `model` | `'fossen'` | vessel model of the planner, the MPC and the simulated plant: `'fossen'` or `'identified'` (Heron). With `'identified'` the thrust limits switch to those of the Heron |
+| `nRuns` | `500` | number of Monte Carlo runs |
+| `noiseLevel` | `1` | thrust disturbance level (`0` = none) |
+| `paramPert` | `0` | plant parameters perturbed by this fraction (`0.2` = ±20 %) |
+| `current`, `currentStd` | `0`, `0` | mean and standard deviation of the speed of a constant current [m/s] |
+| `est.on` | `false` | current estimate (EKF) in the MPC |
+| `posMargin` | `0.15` | funnels tightened by this distance [m] |
+| `vnom`, `vthr`, `vpark` | `1`, `0.5`, `0.3` | planning speeds [m/s]: middle, first and last funnel |
+| `useParallel` | `true` | run the Monte Carlo runs in `parfor` |
+
+Nested fields are set as `cfgOverride.est.on = true`. The nominal plan is
+saved in `results/plan_map<N>_<model>.mat` and reused as long as the planning
+settings are the same; otherwise it is computed again.
+
+### Gazebo
+
+```bash
+cd gazebo
+./gz.sh build      # once, about 10 min
+./gz.sh up         # start the simulator (./gz.sh gui to see the Gazebo window)
+```
+
+```matlab
+setup
+run_hfto_gazebo                         % our method; run_mpcgraph_gazebo for MPC-Graph
+summarize_results(14,'gazebo','identified')
+```
+
+The Gazebo scripts use the `'gazebo'` preset (map 14, identified model, no
+added disturbance, higher planning speeds). After a run the boat stays at the
+goal: `./gz.sh restart` puts it back to the start, `./gz.sh down` stops the
+simulator. `cfgOverride.dryRun = true` runs the same script against the model
+without Gazebo. Run the Gazebo experiments on an otherwise idle machine: the
+controller runs in real time at 10 Hz. The simulator is headless in Docker
+(ROS Melodic, Gazebo 9) and MATLAB on the host connects to it through ROS;
+details and the ROS topics are in [`gazebo/README.md`](gazebo/README.md).
+
 ## Reproducing the paper
 
 | Paper | Script | Output in `results/` |
@@ -66,7 +141,7 @@ are in `config/default_config.m` and can be overridden by defining a struct
 | Robustness (parameters, currents, current estimate), Table 5 | `run_monte_carlo` | `*_param*.mat`, `*_current*.mat`, `*_est*.mat` |
 | MPC-Graph heading weight | `tune_mpcgraph_heading` | `tune_mpcgraph_heading.mat` |
 | Safety certificate, Table 6, Fig. 10 | `run_certificate` | `optionA_map<N>_<model>.mat` |
-| Gazebo experiment, Fig. 6 | `run_hfto_gazebo`, `run_mpcgraph_gazebo` (see below) | `*_gazebo_*.mat` |
+| Gazebo experiment, Fig. 6 | `run_hfto_gazebo`, `run_mpcgraph_gazebo` (see Usage) | `*_gazebo_*.mat` |
 | Computation times, Table 7 | `run_timing` (idle machine) | `timing.mat` |
 | Figures | `paper_figures` | `results/figures/*.pdf` |
 
@@ -82,24 +157,6 @@ Map 2, and map 14 is the Gazebo map (`src/maps/init_arena.m`). Models:
 `'fossen'` (3-DoF model of Fossen with the parameters of the paper) and
 `'identified'` (discrete-time model identified from Gazebo data of the Heron,
 `src/models/heron_identified_params.csv`).
-
-## Gazebo
-
-The Heron simulator runs headless in Docker (ROS Melodic, Gazebo 9); MATLAB on
-the host connects to it through ROS. See [`gazebo/README.md`](gazebo/README.md).
-
-```bash
-cd gazebo
-./gz.sh build      # once
-./gz.sh up         # start the simulator
-```
-
-```matlab
-run_hfto_gazebo        % or run_mpcgraph_gazebo; ./gz.sh restart between runs
-```
-
-Run the Gazebo experiments on an otherwise idle machine: the controller runs
-in real time at 10 Hz.
 
 ## Repository layout
 
