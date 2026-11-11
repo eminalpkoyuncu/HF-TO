@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- Heron on the ocean surface; gzserver only unless gui:=true.
+     Spawn pose is the Gazebo origin; ros_io.m maps it to the map start. -->
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="paused" default="false"/>
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="yaw" default="0"/>
+
+  <include file="$(find heron_gazebo)/launch/heron_world.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="x" value="$(arg x)"/>
+    <arg name="y" value="$(arg y)"/>
+    <arg name="yaw" value="$(arg yaw)"/>
+  </include>
+
+  <!-- ground truth with body-frame twist for MATLAB -->
+  <node pkg="ocean_gazebo" type="base_odometry.py" name="base_odometry" output="screen"/>
+</launch>

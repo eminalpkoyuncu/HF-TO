@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>uuv_gazebo_ros_plugins_msgs</name>
+  <version>0.6.13</version>
+  <description>FloatStamped from uuv_simulator, for MATLAB rosgenmsg</description>
+  <maintainer email="musa.marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <depend>std_msgs</depend>
+  <exec_depend>message_runtime</exec_depend>
+</package>

@@ -1,0 +1,15 @@
+# Headless Heron simulator. Host networking: the ROS master is at
+# http://localhost:11311 for MATLAB on the host (ROS_IP 127.0.0.1).
+services:
+  heron_sim:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: ocean_heron_sim:melodic
+    container_name: heron_sim
+    network_mode: host
+    environment:
+      - ROS_MASTER_URI=http://localhost:11311
+      - ROS_IP=127.0.0.1
+      - GAZEBO_MASTER_URI=http://localhost:11345
+    command: roslaunch ocean_gazebo heron_headless.launch
