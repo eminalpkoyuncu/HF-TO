@@ -180,7 +180,7 @@ gazebo/                    Docker setup of the Heron simulator
 
 ```bibtex
 @article{koyuncu2026funnels,
-  title   = {Trajectory Optimization within Sequentially Connected Funnels for Underactuated {USVs}},
+  title   = {Trajectory Optimization within Sequentially Connected Funnels for Safe and Effective Operation of Underactuated {USVs}},
   author  = {Koyuncu, Eminalp and Ankarali, Mustafa Mert},
   journal = {Ocean Engineering},
   note    = {Under review},
